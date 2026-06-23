@@ -55,6 +55,23 @@ async function unlock() {
 }
 document.getElementById('go').addEventListener('click', unlock);
 document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
+// DGC single sign-on: if already logged into the hub, fetch the key from the locked database and auto-unlock
+(async function(){
+  try{
+    var a=JSON.parse(localStorage.getItem('dgc_auth')); if(!a||!a.refreshTok) return;
+    var K="AIzaSyCPuh1-EdNqzl4rHa5hcPJV_djZwU4Zxis";
+    var DB="https://dgc-login-default-rtdb.europe-west1.firebasedatabase.app";
+    var tok=a.idToken;
+    if(!tok || Date.now() > (a.tokExp||0)-60000){
+      var rr=await fetch("https://securetoken.googleapis.com/v1/token?key="+K,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"grant_type=refresh_token&refresh_token="+encodeURIComponent(a.refreshTok)});
+      var rd=await rr.json(); if(rd.id_token){ tok=rd.id_token; localStorage.setItem("dgc_auth",JSON.stringify({idToken:rd.id_token,refreshTok:rd.refresh_token,tokExp:Date.now()+((parseInt(rd.expires_in)||3600)*1000)})); }
+    }
+    if(!tok) return;
+    var pr=await fetch(DB+"/secrets/tarmac.json?auth="+tok,{cache:"no-store"});
+    var pw=await pr.json();
+    if(pw && typeof pw==='string'){ var f=document.getElementById('pw'); if(f){ f.value=pw; unlock(); } }
+  }catch(e){}
+})();
 </script>
 <script>
 (function(){
