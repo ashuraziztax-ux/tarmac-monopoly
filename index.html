@@ -59,6 +59,9 @@ document.getElementById('pw').addEventListener('keydown', e => { if (e.key === '
 (async function(){
   try{
     var a=JSON.parse(localStorage.getItem('dgc_auth')); if(!a||!a.refreshTok) return;
+    var FULL=["ash@dgc.im","harry@dgc.im","ash@silverdale.im"];
+    function em(t){try{return (JSON.parse(atob((t.split('.')[1]||'').replace(/-/g,'+').replace(/_/g,'/'))).email||'').toLowerCase();}catch(e){return '';}}
+    if(FULL.indexOf(em(a.idToken))<0){ location.replace('https://ashuraziztax-ux.github.io/dgc-budget/'); return; }  // cashflow-only users can't open the plan
     var K="AIzaSyCPuh1-EdNqzl4rHa5hcPJV_djZwU4Zxis";
     var DB="https://dgc-login-default-rtdb.europe-west1.firebasedatabase.app";
     var tok=a.idToken;
